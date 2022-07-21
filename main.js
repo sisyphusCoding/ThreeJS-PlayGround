@@ -38,18 +38,18 @@ const objectDistance = 6
 
 
 const mesh1 = new THREE.Mesh(
-  new TorusGeometry(1,0.4,16,60),
+  new  THREE.TorusGeometry(1,0.4,16,60),
   material
 )
 mesh1.position.x = 1.8
 const mesh2 = new THREE.Mesh(
-  new ConeGeometry(1,2,32),
+  new THREE.ConeGeometry(1,2,32),
   material
 )
 
 mesh2.position.x = -2
 const mesh3 = new THREE.Mesh(
-  new TorusKnotGeometry(0.8,0.35,100,16),
+  new THREE.TorusKnotGeometry(0.8,0.35,100,16),
   material
 )
 
