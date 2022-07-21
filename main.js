@@ -1,9 +1,6 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { BoxGeometry, ConeGeometry, TorusGeometry, TorusKnotGeometry } from 'three'
-import { linspace } from 'canvas-sketch-util/math'
-import win from 'global'
 
 
 const canvas = document.querySelector('#canvas')
