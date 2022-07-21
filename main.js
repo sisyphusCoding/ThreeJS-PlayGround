@@ -1,15 +1,17 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import {Pane} from 'tweakpane'
-import { moveSyntheticComments } from 'typescript'
+import { BoxGeometry, ConeGeometry, TorusGeometry, TorusKnotGeometry } from 'three'
+import { linspace } from 'canvas-sketch-util/math'
+import win from 'global'
 
-const pane = new Pane()
 
 const canvas = document.querySelector('#canvas')
 
+
 const scene = new THREE.Scene()
 const sizes = {w:window.innerWidth,h:window.innerHeight}
+
 
 window.addEventListener('resize',()=>{
   sizes.w = window.innerWidth
@@ -18,97 +20,70 @@ window.addEventListener('resize',()=>{
   camera.aspect = sizes.w / sizes.h
   camera.updateProjectionMatrix()
 
-  controls.update()
-renderer.setSize(sizes.w,sizes.h)
-renderer.setPixelRatio(Math.min(
+  renderer.setSize(sizes.w,sizes.h)
+  renderer.setPixelRatio(Math.min(
   window.devicePixelRatio,
   2
 ))
 })
 
-const mouse = new THREE.Vector2()
-window.addEventListener('mousemove',(_event)=>{
-  mouse.x = _event.clientX / sizes.w * 2 - 1
-  mouse.y = - (_event.clientY / sizes.h) * 2 + 1
-})
+const ambientLight = new THREE.AmbientLight(0xffffff,0.1)
 
-window.addEventListener('click',()=>{
-  if(currentIntersect){
-    if(currentIntersect.object === sphere0){console.log('sphere0 clicked')}
-
-    if(currentIntersect.object === sphere1){console.log('sphere1 clicked')}
-
-    if(currentIntersect.object === sphere2){console.log('sphere2 clicked')}
-  }else{
-    console.log('click on outside')
-  }
-})
-
-const ambientLight = new THREE.AmbientLight(0xffffff,0.2)
 scene.add(ambientLight)
-const light = new THREE.DirectionalLight(0xffffff, 0.5)
+const light = new THREE.DirectionalLight(0xffffff, .7)
+light.position.set(1,1,0)
 light.position.set(-2,5,10)
 light.castShadow = true
 scene.add(light)
 
-const plane = new THREE.Mesh(
-  new THREE.PlaneGeometry(10,5,),
-  new THREE.MeshStandardMaterial({color:0x0078AA})
+const material = new THREE.MeshPhongMaterial({color:0x1F4690})
+const objectDistance = 6
+
+
+const mesh1 = new THREE.Mesh(
+  new TorusGeometry(1,0.4,16,60),
+  material
 )
-plane.receiveShadow= true
-plane.rotation.x = -Math.PI * 0.5
-plane.position.set(0,-.8,0)
-scene.add(plane)
-
-
-const geometry = new THREE.SphereGeometry(.5,16,16)
-
-const sphere0 = new THREE.Mesh(
-  geometry,
-
-new THREE.MeshBasicMaterial({color:0xFF9F29})
-)
-sphere0.castShadow = true
-sphere0.position.set(-2,0,0)
-
-scene.add(sphere0)
-
-const sphere1 = new THREE.Mesh(
-  geometry,
-
-new THREE.MeshBasicMaterial({color:0xFF9F29})
+mesh1.position.x = 1.8
+const mesh2 = new THREE.Mesh(
+  new ConeGeometry(1,2,32),
+  material
 )
 
-sphere1.castShadow = true
-scene.add(sphere1)
-
-const sphere2 = new THREE.Mesh(
-  geometry,
-
-new THREE.MeshBasicMaterial({color:0xFF9F29})
+mesh2.position.x = -2
+const mesh3 = new THREE.Mesh(
+  new TorusKnotGeometry(0.8,0.35,100,16),
+  material
 )
 
-sphere2.castShadow = true
-sphere2.position.set(2,0,0)
+mesh3.position.x = 1.8
+mesh1.position.y = -objectDistance * 0
+mesh2.position.y = -objectDistance * 1
+mesh3.position.y = -objectDistance * 2
 
-scene.add(sphere2)
 
+
+scene.add(mesh1,mesh2,mesh3)
+
+const sectionMesh = [mesh1,mesh2,mesh3]
+const group = new THREE.Group()
+
+scene.add(group)
 
 const camera  = new THREE.PerspectiveCamera(
-  75,
+  35,
   sizes.w / sizes.h,
   0.1,
   100)
-camera.position.set(3,1,4)
-scene.add(camera)
-
-const rayCaster  = new THREE.Raycaster()
+camera.position.set(0,0,6)
+group.add(camera)
 
 
-const controls =  new OrbitControls(camera,canvas)
-controls.enableDamping = true
 
-const renderer = new THREE.WebGLRenderer({canvas:canvas})
+const renderer = new THREE.WebGLRenderer({
+  canvas:canvas,
+  alpha:true
+})
 
 renderer.setSize(sizes.w,sizes.h)
 renderer.shadowMap.enabled = true
@@ -118,61 +93,40 @@ renderer.setPixelRatio(Math.min(
   2
 ))
 
-let currentIntersect = null
+let scrollY = window.scrollY
+const cursor ={}
+cursor.x = 0
+cursor.y =0
 
+window.addEventListener('mousemove',(_e)=>{
+
+cursor.x = _e.clientX / sizes.w - 0.5
+cursor.y = _e.clientY / sizes.h - 0.5
+
+  console.log(cursor)
+})
+
+
+window.addEventListener('scroll',()=>{
+  scrollY = window.scrollY
+})
 const clock = new THREE.Clock()
 const tick  = ( ) =>{
-  
+
+
+  camera.position.y = - scrollY/sizes.h * objectDistance
+
+  const parallax ={x:cursor.x , y:-cursor.y}
   const elTime = clock.getElapsedTime()
 
-  
-  sphere0.position.y = Math.abs(Math.sin((elTime*0.3) *1.5))
-  sphere1.position.y = Math.abs(Math.sin( (elTime*0.8) *1.5))
-  sphere2.position.y = Math.abs(Math.sin( (elTime*1.4) *1.5))
-
-  rayCaster.setFromCamera(mouse,camera)
-
- const objectsToCast = [sphere0,sphere1,sphere2] 
-
- const intersects = rayCaster.intersectObjects(objectsToCast) 
-
- objectsToCast.forEach(object=>{
-   object.material.color.set('#FF9F29')
- })
-
-  intersects.forEach(item=>{
-    item.object.material.color.set('#0000ff')
+  sectionMesh.forEach(thisMesh => {
+    thisMesh.rotation.x = elTime * .1
+    thisMesh.rotation.y = elTime * .15
   })
+  group.position.x += (parallax.x - group.position.x) * 0.08
+  group.position.y += (parallax.y  - group.position.y) * 0.08
 
-  if(intersects.length){
-    if(currentIntersect === null){
-      console.log('mouse enter')
-    }
-    currentIntersect = intersects[0]
-  }else{
-    if(currentIntersect !== null){
-      console.log('mouse leave')
-    }
-    currentIntersect = null
-  }
-
-  controls.update()
   renderer.render(scene,camera)
   window.requestAnimationFrame(tick)
 }
 tick()
-
-
-const cam = pane.addFolder({title:'Camera'})
-
-cam.addInput(camera.position,'x',{
-  min:-30,max:30,step:1
-})
-
-cam.addInput(camera.position,'y',{
-  min:0,max:30,step:1
-})
-
-cam.addInput(camera.position,'z',{
-  min:0,max:30,step:1
-})

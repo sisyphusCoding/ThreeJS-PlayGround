@@ -3,11 +3,9 @@
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
-
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -15,14 +13,45 @@
   -webkit-text-size-adjust: 100%;
 }
 
+html{
+    scroll-behavior: smooth;
+}
 
 body {
+
   margin: 0;
   padding:0;
   min-width: 100vw;
   min-height: 100vh;
+  overflow-x:hidden;
+  overflow-y:scroll;
 }
 
+#canvas{
+position:fixed;
+top:0;
+left:0;
+outline:none;
+z-index:-1;
+}
 
+section{
+  z-index:10;
+  min-height:100vh;
+  min-width: 100vw;
+  display: flex;
+  letter-spacing:-6px;
+  font-size:15vmin;
+  text-transform: uppercase;
+  align-items:center;
+  padding: 0 6vmin;
+  justify-content: flex-start;
+  color:#c0c0c0;
+}
+
+section:nth-child(odd){
+  padding: 0 0;
+  justify-content:center;
+}
 
 
