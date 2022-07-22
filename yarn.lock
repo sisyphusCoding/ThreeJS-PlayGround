@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+cannon@^0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/cannon/-/cannon-0.6.2.tgz#1e7bc72dd5841982f3c104c2bc578bfa4fb1c572"
+  integrity sha512-n/7wWSXr8KOSvjad2x0fJHgpMepKjOKi+NdSnjfYyijoDBZnp4JQKgPcpv28jlXoWM+N9zVYU09J0A6Qxx+Y7w==
+
 esbuild-android-64@0.14.49:
   version "0.14.49"
   resolved "https://registry.yarnpkg.com/esbuild-android-64/-/esbuild-android-64-0.14.49.tgz#9e4682c36dcf6e7b71b73d2a3723a96e0fdc5054"
