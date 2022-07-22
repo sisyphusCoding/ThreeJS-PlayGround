@@ -8,7 +8,21 @@ const pane = new Pane()
 const canvas = document.querySelector('#canvas')
 
 const mainWrap = document.querySelector('#mainWrap')
+const hitSound = new Audio('/hit.mp3')
 
+const playHit = (collision) => {
+
+  const imapactStength = collision.contact.getImpactVelocityAlongNormal()
+
+  if(imapactStength>1.5){
+  const nullReset = 10 - imapactStength
+  hitSound.volume = Math.random()
+  hitSound.currentTime = 0
+  hitSound.play()
+  }
+
+
+}
 
 const scene = new THREE.Scene()
 const sizes = {w:window.innerWidth,h:window.innerHeight}
@@ -53,6 +67,9 @@ scene.add(light)
 
 const world = new CANNON.World()
 world.gravity.set(0,-9.82,0)
+world.broadphase = new CANNON.SAPBroadphase(world)
+world.allowSleep = true
+
 
 
 const defaultMaterial = new CANNON.Material('default')
@@ -148,6 +165,7 @@ const createSphere = (radius,position) => {
 
   body.apply
 
+  body.addEventListener('collide',playHit)
   objectUpdate.push({
     mesh,
     body
@@ -182,7 +200,7 @@ const createBox = (w,h,d,position) => {
   world.add(body)
 
   body.apply
-
+  body.addEventListener('collide',playHit)
   objectUpdate.push({
     mesh,
     body
@@ -242,6 +260,20 @@ tick()
 
 const debugObject = {}
 
+debugObject.reset = () => {
+
+  objectUpdate.forEach(item=>{
+    item.body.removeEventListener('collide',playHit)
+    world.removeBody(item.body)
+
+    scene.remove(item.mesh)
+
+    objectUpdate.splice(0,objectUpdate.length)
+
+  })
+
+}
+
 debugObject.createSphere = () => {
   createSphere(
     Math.random()* 0.5,
@@ -271,16 +303,23 @@ const toggleCreateSphere = pane.addButton({
   title:'Create Sphere'
 })
 
+toggleCreateSphere.on('click',()=>{
+  debugObject.createSphere()
+})
 
 const toggleCreateBox = pane.addButton({
   title:'Create Box'
 })
 
-toggleCreateSphere.on('click',()=>{
-  debugObject.createSphere()
-})
-
 
 toggleCreateBox.on('click',()=>{
   debugObject.createBox()
+})
+
+const reset = pane.addButton({
+  title:'RESET'
+})
+
+reset.on('click',()=>{
+  debugObject.reset()
 })
