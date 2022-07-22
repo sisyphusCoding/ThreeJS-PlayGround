@@ -2,10 +2,9 @@ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import CANNON from 'cannon'
-import { ObjectLoader } from 'three'
+import{Pane} from 'tweakpane'
 
-
-
+const pane = new Pane()
 const canvas = document.querySelector('#canvas')
 
 const mainWrap = document.querySelector('#mainWrap')
@@ -57,22 +56,12 @@ world.gravity.set(0,-9.82,0)
 
 
 const defaultMaterial = new CANNON.Material('default')
-
 const conPlasMaterial =  new CANNON.ContactMaterial(
   defaultMaterial,defaultMaterial,{
     friction:0.1,
     restitution:.5
   })
 
-const sphereShape = new CANNON.Sphere(0.5)
-const sphereBody = new CANNON.Body({
-  mass:1,
-  position:new CANNON.Vec3(0,3,0),
-  shape:sphereShape,
-  material:defaultMaterial
-})
-
-world.add(sphereBody)
 world.addContactMaterial(conPlasMaterial)
 
 const floorShape = new CANNON.Plane()
@@ -91,13 +80,6 @@ const material = new THREE.MeshPhongMaterial({
   color:0xB91646,
 })
 
-const sphere = new THREE.Mesh(
-  new  THREE.SphereGeometry(0.5,32,32),
-  material
-)
-
-sphere.position.y = 0.6
-sphere.castShadow = true
 const plane  = new THREE.Mesh(
   new THREE.PlaneGeometry(10,10),
   new THREE.MeshPhongMaterial({color:0xDFD8CA})
@@ -105,7 +87,7 @@ const plane  = new THREE.Mesh(
 
 plane.rotation.x = - Math.PI * 0.5
 plane.receiveShadow = true
-scene.add(sphere, plane)
+scene.add( plane)
 
 
 const camera  = new THREE.PerspectiveCamera(
@@ -132,6 +114,92 @@ renderer.setPixelRatio(Math.min(
   2
 ))
 
+const objectUpdate = []
+
+const sphereGeo =  new THREE.SphereGeometry(1,20,20)
+
+const sphereMat = new THREE.MeshPhongMaterial({color:0xFF0063})
+
+
+const boxGeo =  new THREE.BoxGeometry(1,1,1)
+
+
+const createSphere = (radius,position) => {
+
+  const mesh = new THREE.Mesh(sphereGeo,sphereMat)
+  mesh.scale.set(radius,radius,radius) 
+  mesh.castShadow = true
+  mesh.position.copy(position)
+  scene.add(mesh)
+
+
+  const shape = new CANNON.Sphere(radius)
+
+
+  const body = new CANNON.Body({
+    mass:10,
+    position: position,
+    shape:shape,
+    material:defaultMaterial
+  })
+
+  body.position.copy(position)
+  world.add(body)
+
+  body.apply
+
+  objectUpdate.push({
+    mesh,
+    body
+  })
+
+}
+
+
+
+const createBox = (w,h,d,position) => {
+
+  const mesh = new THREE.Mesh(boxGeo,sphereMat)
+  mesh.scale.set(w,h,d) 
+  mesh.castShadow = true
+  mesh.position.copy(position)
+  scene.add(mesh)
+
+
+  const shape = new CANNON.Box(
+    new CANNON.Vec3(w/2,h/2,d/2)
+  )
+
+
+  const body = new CANNON.Body({
+    mass:10,
+    position: position,
+    shape:shape,
+    material:defaultMaterial
+  })
+
+  body.position.copy(position)
+  world.add(body)
+
+  body.apply
+
+  objectUpdate.push({
+    mesh,
+    body
+  })
+
+}
+
+
+
+
+createSphere(0.5,{x:2,y:5,z:0})
+
+
+
+console.log(objectUpdate)
+
+
 const clock = new THREE.Clock()
 let oldElTime = 0
 const tick  = ( ) =>{
@@ -147,12 +215,19 @@ const tick  = ( ) =>{
 
   //Physics Word
   
-   world.step(1/60,deltaTime,3)
-  
-  console.log(sphereBody.position.y)
 
 
-  sphere.position.copy(sphereBody.position)
+  world.step(1/60,deltaTime,3)
+
+  objectUpdate.forEach(item=>{
+
+    item.mesh.position.copy(item.body.position)
+
+    item.mesh.quaternion.copy(item.body.quaternion)
+  })
+
+  //sphere.position.copy(sphereBody.position)
+
 
   controls.update() 
 
@@ -164,3 +239,48 @@ const tick  = ( ) =>{
 }
 tick()
 
+
+const debugObject = {}
+
+debugObject.createSphere = () => {
+  createSphere(
+    Math.random()* 0.5,
+    {
+    x:(Math.random() - 0.5 )*3,
+    y:3,
+    z:(Math.random() - 0.5 )*3
+    })
+}
+
+
+
+debugObject.createBox = () => {
+  createBox(
+    Math.random()* 0.5,
+    Math.random()* 0.5,
+    Math.random()* 0.5,
+    {
+    x:(Math.random() - 0.5 )*3,
+    y:3,
+    z:(Math.random() - 0.5 )*3
+    })
+}
+
+
+const toggleCreateSphere = pane.addButton({
+  title:'Create Sphere'
+})
+
+
+const toggleCreateBox = pane.addButton({
+  title:'Create Box'
+})
+
+toggleCreateSphere.on('click',()=>{
+  debugObject.createSphere()
+})
+
+
+toggleCreateBox.on('click',()=>{
+  debugObject.createBox()
+})
