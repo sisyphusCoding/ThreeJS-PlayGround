@@ -42,19 +42,18 @@ window.addEventListener('resize',()=>{
 ))
 })
 
-const ambientLight = new THREE.AmbientLight(0xffffff,0.4)
+const ambientLight = new THREE.AmbientLight(0xffffff,0.5)
 
 scene.add(ambientLight)
 
-const light = new THREE.DirectionalLight(0xffffff, .7)
-light.shadow.mapSize.set(1024,1024)
-light.shadow.camera.far = 15
+const light = new THREE.DirectionalLight(0xffffff, .8)
+light.shadow.mapSize.set(1024*4,1024*4)
+light.shadow.camera.far = 20
 light.shadow.camera.right = 7
 light.shadow.camera.left = -7
 light.shadow.camera.top = 7
 light.shadow.camera.bottom = -7
 
-light.position.set(1,1,0)
 light.position.set(5,5,5)
 light.castShadow = true
 scene.add(light)
@@ -81,7 +80,7 @@ const conPlasMaterial =  new CANNON.ContactMaterial(
 
 world.addContactMaterial(conPlasMaterial)
 
-const floorShape = new CANNON.Plane()
+const floorShape = new CANNON.Box(new CANNON.Vec3(5,5,0.1))
 const floorBody = new CANNON.Body()
 floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1,0,0),Math.PI*0.5)
 floorBody.mass  = 0
@@ -94,7 +93,7 @@ world.addBody(floorBody)
  THREE.JS
  **/
 const material = new THREE.MeshPhongMaterial({
-  color:0xB91646,
+  color:0xb91646,
 })
 
 const plane  = new THREE.Mesh(
@@ -103,6 +102,7 @@ const plane  = new THREE.Mesh(
 )
 
 plane.rotation.x = - Math.PI * 0.5
+plane.position.set(0,0.1,0)
 plane.receiveShadow = true
 scene.add( plane)
 
@@ -125,7 +125,9 @@ const renderer = new THREE.WebGLRenderer({
 
 renderer.setSize(sizes.w,sizes.h)
 renderer.shadowMap.enabled = true
+renderer.shadowMapSoft = true;
 renderer.shadowMap.type = THREE.PCFShadowMap
+
 renderer.setPixelRatio(Math.min(
   window.devicePixelRatio,
   2
@@ -135,7 +137,7 @@ const objectUpdate = []
 
 const sphereGeo =  new THREE.SphereGeometry(1,20,20)
 
-const sphereMat = new THREE.MeshPhongMaterial({color:0xFF0063})
+const sphereMat = new THREE.MeshPhongMaterial({color:0xB91646})
 
 
 const boxGeo =  new THREE.BoxGeometry(1,1,1)
@@ -146,6 +148,8 @@ const createSphere = (radius,position) => {
   const mesh = new THREE.Mesh(sphereGeo,sphereMat)
   mesh.scale.set(radius,radius,radius) 
   mesh.castShadow = true
+
+  mesh.receiveShadow= true
   mesh.position.copy(position)
   scene.add(mesh)
 
@@ -180,6 +184,8 @@ const createBox = (w,h,d,position) => {
   const mesh = new THREE.Mesh(boxGeo,sphereMat)
   mesh.scale.set(w,h,d) 
   mesh.castShadow = true
+
+  mesh.receiveShadow= true
   mesh.position.copy(position)
   scene.add(mesh)
 
@@ -262,15 +268,17 @@ const debugObject = {}
 
 debugObject.reset = () => {
 
+
+
   objectUpdate.forEach(item=>{
     item.body.removeEventListener('collide',playHit)
     world.removeBody(item.body)
 
     scene.remove(item.mesh)
-
-    objectUpdate.splice(0,objectUpdate.length)
-
   })
+
+
+  objectUpdate.splice(0,objectUpdate.length)
 
 }
 
